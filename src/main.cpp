@@ -120,7 +120,7 @@ void setup()
     {
         ;
     }
-    cam.init(esp32cam_config);
+    cam.init(esp32cam_aithinker_config);
 
     IPAddress ip;
 
