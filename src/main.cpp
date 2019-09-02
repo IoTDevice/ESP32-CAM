@@ -7,8 +7,10 @@
 #include "OV2640Streamer.h"
 #include "CRtspSession.h"
 
+#include <ESPmDNS.h>
+
 // #define ENABLE_OLED //if want use oled ,turn on thi macro
-#define SOFTAP_MODE // If you want to run our own softap turn this on
+// #define SOFTAP_MODE // If you want to run our own softap turn this on
 #define ENABLE_WEBSERVER
 #define ENABLE_RTSPSERVER
 
@@ -21,6 +23,8 @@ SSD1306Wire display(OLED_ADDRESS, I2C_SDA, I2C_SCL, GEOMETRY_128_32);
 bool hasDisplay; // we probe for the device at runtime
 #endif
 
+String version = "1.0";
+String deviceName = "ESP-CAM";
 OV2640 cam;
 
 #ifdef ENABLE_WEBSERVER
@@ -35,10 +39,29 @@ WiFiServer rtspServer(8554);
 #ifdef SOFTAP_MODE
 IPAddress apIP = IPAddress(192, 168, 1, 1);
 #else
-#include "wifikeys.h"
+// #include "wifikeys.h"
 #endif
 
 #ifdef ENABLE_WEBSERVER
+// 设备信息
+void handleDeviceInfo(){
+  String message;
+  message = "{\n";
+  message += "\"name\":\""+deviceName +"\",\n";
+  message += "\"model\":\"com.iotserv.devices.webcam\",\n";
+  message += "\"mac\":\""+WiFi.macAddress()+"\",\n";
+  message += "\"id\":\""+ESP.getSketchMD5()+"\",\n";
+  message += "\"ui-support\":[\"web\",\"native\"],\n";
+  message += "\"ui-first\":\"web\",\n";
+  message += "\"author\":\"Farry\",\n";
+  message += "\"email\":\"newfarry@126.com\",\n";
+  message += "\"home-page\":\"https://github.com/iotdevice\",\n";
+  message += "\"firmware-respository\":\"https://github.com/iotdevice/ESP32-CAM\",\n";
+  message += "\"firmware-version\":\""+version+"\"\n";
+  message +="}";
+  server.send(200, "application/json", message);
+}
+
 void handle_jpg_stream(void)
 {
     WiFiClient client = server.client();
@@ -146,9 +169,8 @@ void setup()
         ip = WiFi.softAPIP();
     }
 #else
-    lcdMessage(String("join ") + ssid);
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    WiFi.beginSmartConfig();
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
@@ -160,11 +182,20 @@ void setup()
     Serial.println(ip);
 #endif
 
+  if (!MDNS.begin("ESP32-CAM")) {
+    // Serial.println("MDNS responder started");
+        while(1) {
+            delay(1000);
+        }
+  }
+    MDNS.addService("iotdevice", "tcp", 80);
+    
     lcdMessage(ip.toString());
 
 #ifdef ENABLE_WEBSERVER
     server.on("/", HTTP_GET, handle_jpg_stream);
     server.on("/jpg", HTTP_GET, handle_jpg);
+    server.on("/info", handleDeviceInfo);
     server.onNotFound(handleNotFound);
     server.begin();
 #endif
