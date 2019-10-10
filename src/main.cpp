@@ -24,7 +24,7 @@ bool hasDisplay; // we probe for the device at runtime
 #endif
 
 String version = "1.0";
-String deviceName = "ESP-CAM";
+String deviceName = "ESP32摄像头";
 OV2640 cam;
 
 #ifdef ENABLE_WEBSERVER
@@ -43,24 +43,6 @@ IPAddress apIP = IPAddress(192, 168, 1, 1);
 #endif
 
 #ifdef ENABLE_WEBSERVER
-// 设备信息
-void handleDeviceInfo(){
-  String message;
-  message = "{\n";
-  message += "\"name\":\""+deviceName +"\",\n";
-  message += "\"model\":\"com.iotserv.devices.webcam\",\n";
-  message += "\"mac\":\""+WiFi.macAddress()+"\",\n";
-  message += "\"id\":\""+ESP.getSketchMD5()+"\",\n";
-  message += "\"ui-support\":[\"web\",\"native\"],\n";
-  message += "\"ui-first\":\"web\",\n";
-  message += "\"author\":\"Farry\",\n";
-  message += "\"email\":\"newfarry@126.com\",\n";
-  message += "\"home-page\":\"https://github.com/iotdevice\",\n";
-  message += "\"firmware-respository\":\"https://github.com/iotdevice/ESP32-CAM\",\n";
-  message += "\"firmware-version\":\""+version+"\"\n";
-  message +="}";
-  server.send(200, "application/json", message);
-}
 
 void handle_jpg_stream(void)
 {
@@ -189,13 +171,23 @@ void setup()
         }
   }
     MDNS.addService("iotdevice", "tcp", 80);
-    
+    MDNS.addServiceTxt("iotdevice", "tcp", "name", deviceName);
+    MDNS.addServiceTxt("iotdevice", "tcp", "model", "com.iotserv.devices.webcam");
+    MDNS.addServiceTxt("iotdevice", "tcp", "mac", WiFi.macAddress());
+    MDNS.addServiceTxt("iotdevice", "tcp", "id", ESP.getSketchMD5());
+    MDNS.addServiceTxt("iotdevice", "tcp", "ui-support", "web,native");
+    MDNS.addServiceTxt("iotdevice", "tcp", "ui-first", "web");
+    MDNS.addServiceTxt("iotdevice", "tcp", "author", "Farry");
+    MDNS.addServiceTxt("iotdevice", "tcp", "email", "newfarry@126.com");
+    MDNS.addServiceTxt("iotdevice", "tcp", "home-page", "https://github.com/iotdevice");
+    MDNS.addServiceTxt("iotdevice", "tcp", "firmware-respository", "https://github.com/iotdevice/ESP32-CAM");
+    MDNS.addServiceTxt("iotdevice", "tcp", "firmware-version", version);
+
     lcdMessage(ip.toString());
 
 #ifdef ENABLE_WEBSERVER
     server.on("/", HTTP_GET, handle_jpg_stream);
     server.on("/jpg", HTTP_GET, handle_jpg);
-    server.on("/info", handleDeviceInfo);
     server.onNotFound(handleNotFound);
     server.begin();
 #endif
