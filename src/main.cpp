@@ -172,11 +172,9 @@ void setup()
   }
     MDNS.addService("iotdevice", "tcp", 80);
     MDNS.addServiceTxt("iotdevice", "tcp", "name", deviceName);
-    MDNS.addServiceTxt("iotdevice", "tcp", "model", "com.iotserv.devices.webcam");
+    MDNS.addServiceTxt("iotdevice", "tcp", "model", "com.iotserv.services.web");
     MDNS.addServiceTxt("iotdevice", "tcp", "mac", WiFi.macAddress());
     MDNS.addServiceTxt("iotdevice", "tcp", "id", ESP.getSketchMD5());
-    MDNS.addServiceTxt("iotdevice", "tcp", "ui-support", "web,native");
-    MDNS.addServiceTxt("iotdevice", "tcp", "ui-first", "web");
     MDNS.addServiceTxt("iotdevice", "tcp", "author", "Farry");
     MDNS.addServiceTxt("iotdevice", "tcp", "email", "newfarry@126.com");
     MDNS.addServiceTxt("iotdevice", "tcp", "home-page", "https://github.com/iotdevice");
